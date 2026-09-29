@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>文件提取工具</title>
+<HTA:APPLICATION
+    ID="oHTA"
+    APPLICATIONNAME="FileExtractor"
+    BORDER="thin"
+    CAPTION="yes"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="yes"
+    WINDOWSTATE="normal"
+    SCROLL="no"
+    INNERBORDER="no"
+    WIDTH="1280"
+    HEIGHT="900"
+/>
+<style>
+    * { box-sizing: border-box; }
+    html, body {
+        height: 100%; width: 100%; margin: 0; padding: 0;
+        overflow: hidden;
+    }
+    body {
+        font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+        background: #f0f2f5;
+        padding: 20px 50px;
+        display: flex;
+    }
+    
+    .container {
+        flex: 1;
+        background: #fff;
+        border-radius: 10px;
+        padding: 26px 36px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    
+    h1 {
+        font-size: 1.25rem;
+        margin: 0 0 14px 0;
+        color: #1e3a5f;
+        flex: 0 0 auto;
+    }
+    .desc {
+        color: #666;
+        font-size: 0.8rem;
+        border-left: 3px solid #4a90d9;
+        padding-left: 10px;
+        margin-bottom: 22px;
+        line-height: 1.6;
+        flex: 0 0 auto;
+    }
+    
+    .input-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 14px;
+        flex: 0 0 auto;
+    }
+    label {
+        font-weight: 600;
+        white-space: nowrap;
+        font-size: 0.88rem;
+    }
+    input[type="text"] {
+        flex: 1;
+        margin-right: 14px;
+        padding: 8px 16px;
+        font-size: 0.88rem;
+        border: 2px solid #d0d7de;
+        border-radius: 6px;
+        outline: none;
+    }
+    input[type="text"]:focus { border-color: #4a90d9; }
+    
+    button {
+        flex: 0 0 auto;
+        border: none;
+        padding: 8px 24px;
+        font-size: 0.88rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #fff;
+        margin-left: 10px;
+    }
+    .btn-scan { background: #4a90d9; }
+    .btn-scan:hover { background: #357abd; }
+    .btn-copy { background: #4caf50; }
+    .btn-copy:hover { background: #3d8b40; }
+    button:disabled { background: #a0c0e0; cursor: not-allowed; }
+    
+    .options-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 14px;
+        flex: 0 0 auto;
+        font-size: 0.82rem;
+        color: #555;
+    }
+    .options-row label {
+        font-weight: 600;
+        font-size: 0.82rem;
+        color: #555;
+    }
+    select {
+        margin-left: 8px;
+        padding: 5px 10px;
+        font-size: 0.82rem;
+        border: 2px solid #d0d7de;
+        border-radius: 4px;
+        outline: none;
+        background: #fff;
+        color: #333;
+    }
+    select:focus { border-color: #4a90d9; }
+    .chk-clear {
+        margin-left: 24px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+    .chk-clear input { cursor: pointer; }
+
+    .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        flex: 0 0 auto;
+    }
+    .status-text {
+        font-size: 0.8rem;
+        color: #4a90d9;
+        font-weight: 600;
+        min-height: 18px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 70%;
+    }
+    .timer-text {
+        font-size: 0.8rem;
+        color: #888;
+        font-weight: 600;
+        min-height: 18px;
+    }
+
+    .progress-container {
+        margin-bottom: 18px;
+        background: #e9ecef;
+        border-radius: 0;
+        height: 30px;
+        overflow: hidden;
+        flex: 0 0 auto;
+    }
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: #4a90d9;
+        border-radius: 0;
+        transition: width 0.2s;
+    }
+    
+    .log-area {
+        flex: 1;
+        position: relative;
+        margin-bottom: 20px;
+        min-height: 220px;
+    }
+    #log {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: #1e1e2f;
+        color: #d4d4e8;
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 0.86rem;
+        padding: 16px 20px;
+        border-radius: 8px;
+        border: 1px solid #3e3e5a;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+        resize: none;
+        line-height: 1.7;
+        margin: 0;
+    }
+    
+    .log-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+        flex: 0 0 auto;
+    }
+    .btn-copy-log {
+        background: #5e5ce6;
+        font-size: 0.8rem;
+        padding: 8px 20px;
+    }
+    .btn-copy-log:hover { background: #4b49c8; }
+    
+    .tips {
+        background: #fff8e6;
+        border: 1px solid #f0d58c;
+        border-radius: 6px;
+        padding: 12px 18px;
+        font-size: 0.76rem;
+        color: #6b5b2e;
+        line-height: 1.7;
+        flex: 0 0 auto;
+    }
+    .tips strong { color: #8a6d1e; margin-right: 6px; }
+</style>
+<script language="JScript">
+    var fso;
+    var scanQueue = [];
+    var scanQueueIndex = 0;
+    var targetFiles = [];
+    var outDir = "";
+    var outDirLower = "";
+    var extInput = "";
+    var extLower = "";
+    var copyIndex = 0;
+    var copiedCount = 0;
+    var failedCount = 0;
+    var skipCount = 0;
+    var baseDir = "";
+
+    var logLineCount = 0;
+    var scanPulseInterval = null;
+
+    var phaseStartTime = 0;
+    var totalElapsed = 0;
+    var timerInterval = null;
+
+    function init() {
+        try {
+            fso = new ActiveXObject("Scripting.FileSystemObject");
+        } catch (e) {
+            alert("无法初始化文件系统，请确保在 Windows 下运行。");
+        }
+        document.getElementById("log").value = "";
+        logLineCount = 0;
+        log("工具已就绪。请输入扩展名，先点击「扫描文件」，再点击「开始复制」。");
+        resetProgress();
+        setButtons(true, false);
+        resetTimer();
+    }
+
+    function log(msg) {
+        var el = document.getElementById("log");
+        el.value += msg + "\r\n";
+        logLineCount += 1 + (msg.split("\r\n").length - 1);
+        if (logLineCount > 2000) {
+            var lines = el.value.split("\r\n");
+            el.value = lines.slice(lines.length - 1000).join("\r\n");
+            logLineCount = 1000;
+        }
+        el.scrollTop = el.scrollHeight;
+    }
+
+    function resetProgress() {
+        stopScanPulse();
+        document.getElementById("progressBar").style.width = "0%";
+        document.getElementById("statusText").innerHTML = "等待操作...";
+    }
+
+    function setButtons(scanEnable, copyEnable) {
+        document.getElementById("scanBtn").disabled = !scanEnable;
+        document.getElementById("copyBtn").disabled = !copyEnable;
+    }
+
+    function startScanPulse() {
+        stopScanPulse();
+        var pct = 10, dir = 1;
+        scanPulseInterval = setInterval(function() {
+            pct += dir * 3;
+            if (pct >= 90) { pct = 90; dir = -1; }
+            if (pct <= 10) { pct = 10; dir = 1; }
+            document.getElementById("progressBar").style.width = pct + "%";
+        }, 120);
+    }
+    function stopScanPulse() {
+        if (scanPulseInterval) {
+            clearInterval(scanPulseInterval);
+            scanPulseInterval = null;
+        }
+    }
+
+    function resetTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        totalElapsed = 0;
+        phaseStartTime = 0;
+        var t = document.getElementById("timerText");
+        t.innerHTML = "总耗时: 0.0 秒";
+        t.style.color = "#888";
+    }
+
+    function beginPhaseTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        phaseStartTime = new Date().getTime();
+        timerInterval = setInterval(function() {
+            var elapsed = totalElapsed + (new Date().getTime() - phaseStartTime) / 1000;
+            var t = document.getElementById("timerText");
+            t.innerHTML = "总耗时: " + elapsed.toFixed(1) + " 秒";
+        }, 100);
+    }
+
+    function endPhaseTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        if (phaseStartTime > 0) {
+            totalElapsed += (new Date().getTime() - phaseStartTime) / 1000;
+            phaseStartTime = 0;
+        }
+        var t = document.getElementById("timerText");
+        t.innerHTML = "总耗时: " + totalElapsed.toFixed(1) + " 秒";
+    }
+
+    function getBaseDir() {
+        var href = location.href;
+        var path = href.replace(/^file:\/\/\//, "");
+        path = decodeURI(path);
+        path = path.replace(/\//g, "\\");
+        var parent = fso.GetParentFolderName(path);
+        return fso.GetAbsolutePathName(parent);
+    }
+
+    function toRelPath(absPath) {
+        var normalized = fso.GetAbsolutePathName(absPath);
+        var baseLower = baseDir.toLowerCase();
+        var normLower = normalized.toLowerCase();
+        var basePrefix = baseLower.charAt(baseLower.length - 1) === "\\"
+            ? baseLower
+            : baseLower + "\\";
+
+        if (normLower === baseLower) {
+            return ".\\";
+        }
+        if (normLower.indexOf(basePrefix) === 0) {
+            var rel = normalized.substring(basePrefix.length);
+            return ".\\" + rel;
+        }
+        return normalized;
+    }
+
+    function truncatePath(p, maxLen) {
+        if (p.length <= maxLen) return p;
+        return "..." + p.substring(p.length - maxLen + 3);
+    }
+
+    function friendlyError(e) {
+        var num = null;
+        try {
+            if (e && typeof e.number !== "undefined") num = e.number;
+        } catch (ex) {}
+
+        if (num !== null) {
+            var uNum = num < 0 ? num + 4294967296 : num;
+            if (uNum === 0x80070005) return "权限不足，文件可能被占用或被拒绝访问";
+            if (uNum === 0x80070003) return "路径不存在";
+            if (uNum === 0x800700CE) return "路径或文件名过长";
+            if (uNum === 0x80070002) return "源文件不存在";
+            if (uNum === 0x80070020) return "文件正在被其他程序使用";
+            if (uNum === 0x80070070) return "磁盘空间不足";
+        }
+
+        var msg = (e && e.message) ? e.message : String(e);
+        var low = msg.toLowerCase();
+        if (low.indexOf("permission denied") >= 0) return "权限不足，文件可能被占用";
+        if (low.indexOf("path not found") >= 0)    return "路径不存在";
+        if (low.indexOf("path too long") >= 0)     return "路径过长";
+        if (low.indexOf("file not found") >= 0)    return "源文件不存在";
+        return msg;
+    }
+
+    function deleteFolderRecursive(folderPath) {
+        try {
+            if (!fso.FolderExists(folderPath)) return;
+            var f = fso.GetFolder(folderPath);
+
+            var filePaths = [];
+            var files = new Enumerator(f.Files);
+            for (; !files.atEnd(); files.moveNext()) {
+                filePaths.push(files.item().Path);
+            }
+
+            var subPaths = [];
+            var subs = new Enumerator(f.SubFolders);
+            for (; !subs.atEnd(); subs.moveNext()) {
+                subPaths.push(subs.item().Path);
+            }
+
+            for (var i = 0; i < filePaths.length; i++) {
+                try { fso.DeleteFile(filePaths[i], true); } catch (e) {}
+            }
+            for (var j = 0; j < subPaths.length; j++) {
+                deleteFolderRecursive(subPaths[j]);
+            }
+            try { fso.DeleteFolder(folderPath, true); } catch (e) {}
+        } catch (e) {}
+    }
+
+    // ========== 功能 1：扫描 ==========
+    function startScan() {
+        extInput = document.getElementById("ext").value;
+        extInput = extInput.replace(/^\s+|\s+$/g, "");
+        if (extInput === "") {
+            alert("请输入文件扩展名，例如：aaa 或 lrc");
+            return;
+        }
+        if (extInput.charAt(0) === ".") {
+            extInput = extInput.substring(1);
+        }
+        if (extInput === "") {
+            alert("扩展名不能为空");
+            return;
+        }
+        extLower = extInput.toLowerCase();
+
+        baseDir = getBaseDir();
+        outDir = fso.BuildPath(baseDir, extInput + "文件复制");
+        outDirLower = outDir.toLowerCase();
+
+        setButtons(false, false);
+        document.getElementById("log").value = "";
+        logLineCount = 0;
+        scanQueue = [];
+        scanQueueIndex = 0;
+        targetFiles = [];
+        copyIndex = 0;
+        copiedCount = 0;
+        failedCount = 0;
+        skipCount = 0;
+        
+        resetTimer();
+        beginPhaseTimer();
+        startScanPulse();
+        
+        document.getElementById("statusText").innerHTML = "正在扫描...";
+
+        log("========================================");
+        log("【扫描阶段】开始...");
+        log("搜索目录：" + baseDir);
+        log("扩展名：*." + extInput);
+        log("----------------------------------------");
+
+        scanQueue.push(fso.GetFolder(baseDir));
+        setTimeout(scanNext, 10);
+    }
+
+    function scanNext() {
+        if (scanQueueIndex >= scanQueue.length) {
+            stopScanPulse();
+            document.getElementById("progressBar").style.width = "100%";
+            log("----------------------------------------");
+            log("扫描完成，共找到 " + targetFiles.length + " 个文件。");
+            document.getElementById("statusText").innerHTML = "扫描完成，准备复制...";
+            endPhaseTimer();
+            setButtons(true, targetFiles.length > 0);
+            return;
+        }
+
+        var folder = scanQueue[scanQueueIndex++];
+        document.getElementById("statusText").innerHTML = "正在扫描: " + truncatePath(folder.Path, 70);
+
+        try {
+            var files = new Enumerator(folder.Files);
+            for (; !files.atEnd(); files.moveNext()) {
+                var file = files.item();
+                var name = file.Name;
+                var ext = fso.GetExtensionName(name).toLowerCase();
+                if (ext === extLower) {
+                    targetFiles.push(file.Path);
+                    log("[" + targetFiles.length + "] " + toRelPath(file.Path));
+                }
+            }
+            var subFolders = new Enumerator(folder.SubFolders);
+            for (; !subFolders.atEnd(); subFolders.moveNext()) {
+                var sub = subFolders.item();
+                if (sub.Path.toLowerCase() !== outDirLower) {
+                    scanQueue.push(sub);
+                }
+            }
+        } catch (e) {
+            log("[警告] 无法访问: " + folder.Path + " : " + friendlyError(e));
+        }
+
+        setTimeout(scanNext, 1);
+    }
+
+    // ========== 功能 2：复制 ==========
+    function startCopy() {
+        if (targetFiles.length === 0) {
+            alert("尚未扫描到任何文件，请先点击「扫描文件」");
+            return;
+        }
+        
+        var conflictMode = document.getElementById("conflictMode").value;
+        var clearOutput = document.getElementById("clearOutput").checked;
+        
+        setButtons(false, false);
+        copyIndex = 0;
+        copiedCount = 0;
+        failedCount = 0;
+        skipCount = 0;
+        document.getElementById("progressBar").style.width = "0%";
+        document.getElementById("statusText").innerHTML = "正在复制...";
+
+        beginPhaseTimer();
+
+        log("========================================");
+        log("【复制阶段】开始...");
+        log("输出目录：" + outDir);
+        log("重名处理：" + 
+            (conflictMode === "skip" ? "跳过已存在文件" :
+             conflictMode === "overwrite" ? "覆盖同名文件" : "重命名（加 _1、_2）"));
+        log("----------------------------------------");
+
+        if (clearOutput) {
+            if (fso.FolderExists(outDir)) {
+                log("正在清空输出文件夹...");
+                deleteFolderRecursive(outDir);
+            }
+        }
+
+        try {
+            if (!fso.FolderExists(outDir)) {
+                fso.CreateFolder(outDir);
+                log("已创建输出文件夹：" + extInput + "文件复制");
+            } else {
+                log("输出文件夹已存在，将直接使用。");
+            }
+        } catch (e) {
+            log("创建输出文件夹失败：" + friendlyError(e));
+            setButtons(true, true);
+            endPhaseTimer();
+            return;
+        }
+
+        copyNextFile(conflictMode);
+    }
+
+    function copyNextFile(conflictMode) {
+        if (copyIndex >= targetFiles.length) {
+            log("----------------------------------------");
+            log("全部完成！成功 " + copiedCount + " 个，跳过 " + skipCount + " 个，失败 " + failedCount + " 个。");
+            log("输出目录：" + outDir);
+            log("========================================");
+            document.getElementById("progressBar").style.width = "100%";
+            document.getElementById("statusText").innerHTML = "✅ 任务完成";
+            endPhaseTimer();
+            setButtons(true, false);
+            targetFiles = [];
+            return;
+        }
+
+        var src = targetFiles[copyIndex];
+        var fileName = fso.GetFileName(src);
+        var dest = fso.BuildPath(outDir, fileName);
+        var scanIndex = copyIndex + 1;
+
+        if (fso.FileExists(dest)) {
+            if (conflictMode === "skip") {
+                skipCount++;
+                log("[" + scanIndex + "] [跳过] 目标已存在: " + fileName);
+                copyIndex++;
+                updateCopyProgress();
+                setTimeout(function() { copyNextFile(conflictMode); }, 1);
+                return;
+            } else if (conflictMode === "rename") {
+                var baseName = fso.GetBaseName(fileName);
+                var fileExt = fso.GetExtensionName(fileName);
+                var i = 1;
+                while (true) {
+                    var newName = baseName + "_" + i + "." + fileExt;
+                    dest = fso.BuildPath(outDir, newName);
+                    if (!fso.FileExists(dest)) break;
+                    i++;
+                }
+            }
+        }
+
+        if (dest.length >= 255) {
+            failedCount++;
+            log("[" + scanIndex + "] [失败] 目标路径过长，已跳过: " + fileName);
+            copyIndex++;
+            updateCopyProgress();
+            setTimeout(function() { copyNextFile(conflictMode); }, 1);
+            return;
+        }
+
+        try {
+            var overwrite = (conflictMode === "overwrite" && fso.FileExists(dest));
+            fso.CopyFile(src, dest, overwrite);
+            copiedCount++;
+            log("[" + scanIndex + "] [成功] " + toRelPath(src) + "  →  " + fso.GetFileName(dest));
+        } catch (e) {
+            failedCount++;
+            log("[" + scanIndex + "] [失败] " + toRelPath(src) + " : " + friendlyError(e));
+        }
+
+        copyIndex++;
+        updateCopyProgress();
+        setTimeout(function() { copyNextFile(conflictMode); }, 1);
+    }
+
+    function updateCopyProgress() {
+        var percent = Math.floor((copyIndex / targetFiles.length) * 100);
+        document.getElementById("progressBar").style.width = percent + "%";
+        document.getElementById("statusText").innerHTML = "正在复制: " + copyIndex + " / " + targetFiles.length + " (" + percent + "%)";
+    }
+
+    function copyLog() {
+        var el = document.getElementById("log");
+        var logText = el.value;
+        if (!logText) {
+            alert("暂无日志可复制");
+            return;
+        }
+        try {
+            window.clipboardData.setData("Text", logText);
+            alert("✅ 日志已成功复制到剪贴板！");
+        } catch (e) {
+            el.focus();
+            el.select();
+            alert("自动复制失败（可能被系统策略禁用），请按 Ctrl+C 手动复制。\n日志内容已自动选中。");
+        }
+    }
+</script>
+</head>
+<body onload="init()">
+    <div class="container">
+        <h1>📁 文件提取工具</h1>
+        <div class="desc">
+            输入扩展名（如 <strong>aaa</strong>、<strong>lrc</strong>），程序会将当前工具所在目录及所有子目录中的该类型文件，全部复制到当前目录下的 <strong>「扩展名+文件复制」</strong> 文件夹中。
+        </div>
+
+        <div class="input-row">
+            <label for="ext">文件扩展名：</label>
+            <input type="text" id="ext" placeholder="例如：aaa 或 lrc" value="lrc" />
+            <button id="scanBtn" class="btn-scan" onclick="startScan()">🔍 扫描文件</button>
+            <button id="copyBtn" class="btn-copy" onclick="startCopy()">📋 开始复制</button>
+        </div>
+
+        <div class="options-row">
+            <label for="conflictMode">重名处理：</label>
+            <select id="conflictMode">
+                <option value="rename" selected>重命名（加 _1、_2 后缀）</option>
+                <option value="skip">跳过已存在文件</option>
+                <option value="overwrite">覆盖同名文件</option>
+            </select>
+            <label class="chk-clear">
+                <input type="checkbox" id="clearOutput" /> 复制前清空输出文件夹
+            </label>
+        </div>
+
+        <div class="status-bar">
+            <span class="status-text" id="statusText">等待操作...</span>
+            <span class="timer-text" id="timerText">总耗时: 0.0 秒</span>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="log-area">
+            <textarea id="log" readonly></textarea>
+        </div>
+        
+        <div class="log-actions">
+            <button class="btn-copy-log" onclick="copyLog()">📋 复制日志</button>
+        </div>
+
+        <div class="tips">
+            <strong>📌 提示：</strong>扩展名不区分大小写；输出文件夹自动命名为「扩展名+文件复制」；扫描时跳过输出文件夹本身；全程只复制，不删除原文件。
+        </div>
+    </div>
+</body>
+</html>
