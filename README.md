@@ -2,6 +2,13 @@
 一个同类型文件复制工具-基于hta的应用。
 
  ---
+<img src="图片/工具截图1.png" width="90%" alt="工具截图1">
+
+<img src="图片/工具截图2.png" width="90%" alt="工具截图2">
+
+<img src="图片/工具截图3.png" width="90%" alt="工具截图3">
+
+
 
  这是我用deepseek（免费版）磨了一下午完善好的一个工具。
  本身这里工具其实用一个bat就能搞定。我一开始拿到的工具也是一个bat。但我用完之后觉得这个工具还有改进的空间--先问我要复制什么类型再开始复制。
@@ -46,3 +53,20 @@
 | Windows XP | ⚠️ 理论支持 | 但系统太老，可能有兼容性问题，不推荐 |
 
 > 32 位和 64 位 Windows 都可以运行。
+
+---
+
+# deepseek
+
+与deepseek的聊天内容，我全选分享了，可以找个安全网站确认一下链接安全后再点入。
+
+**虽然我觉得这给ds分享没什么用，如果你对这个工具感兴趣，复制文本，让你的ai新做一个会更好**
+
+
+```txt
+https://chat.deepseek.com/share/uk49fbdo5zd75t8h7j
+```
+
+<img src="图片/deepseek聊天1.png" width="90%" alt="deepseek聊天1">
+
+<img src="图片/deepseek聊天2.png" width="90%" alt="deepseek聊天2">
